@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
+    <script src="https://kit.fontawesome.com/5796e58888.js" crossorigin="anonymous"></script>
+    <title>Document</title>
+</head>
+
+<body>
+
+    <div id="app">
+        <div class="lessonCard">
+            <i v-bind:class="lesson.icon"></i>
+            <p> Subject : {{lesson.subject}} </p>
+            <p> Location : {{lesson.location}} </p>
+            <p> Price : £{{lesson.price}} </p>
+            <p> Available Spaces : {{lesson.spaces}} </p>
+            <button>
+                <span>
+                    <i class="fa-solid fa-cart-plus"></i>
+                </span>
+                Add To Basket
+            </button>
+        </div>
+
+    </div>
+
+
+
+
+    <script>
+        let webStore = new Vue({
+            el: "#app",
+
+            data: {
+                lesson: {
+                    id: 1111,
+                    subject: "Math",
+                    location: "London",
+                    price: 100,
+                    spaces: 5,
+                    icon: "fa-solid fa-calculator",
+                }
+
+            }
+        })
+    </script>
+
+
+    <style>
+        .lessonCard {
+            border: 1px solid black;
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 300px;
+            font-weight: 600;
+        }
+
+        .lessonCard button {
+            display: flex;
+            align-items: center;
+            justify-content: space-evenly;
+            width: 10em;
+            border: none;
+            border-radius: 10px;
+            padding: 15px;
+            color: rgb(3, 3, 45);
+            background-color: rgb(179, 255, 255);
+        }
+
+        .lessonCard i {
+            font-size: 48px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+    </style>
+
+</body>
+
+</html>
