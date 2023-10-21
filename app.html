@@ -13,7 +13,7 @@
     <!-- Navbar section with search field and basket icon -->
     <div id="navbar" class="navbar">
         <div class="webName">
-            <img src="../icons/logo2.png" alt="Logo" class="navLogo">
+            <img src="../icons/logo.png" alt="Logo" class="navLogo">
             <h1>After School Club</h1>
         </div>
         <form id="searchForm">
@@ -74,66 +74,20 @@
     </script>
 
     <style>
-        #app {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
+        body {
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
         }
-
-        .lessonCard {
-            border: 3px solid #012A4A;
-            border-radius: 10px;
-            padding: 10px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 300px;
-            font-size: 1.6em;
-            font-weight: 800;
-            margin: 10px;
-            color: #237ec0;
-        }
-
-        .lessonCard button {
-            display: flex;
-            align-items: center;
-            justify-content: space-evenly;
-            width: 15em;
-            height: 4em;
-            border: none;
-            border-radius: 10px;
-            padding: 10px;
-            color: rgb(31, 31, 108);
-            background-color: #A9D6E5;
-        }
-
-        .lessonIcon {
-            font-size: 70px;
-            color: #61A5C2;
-            margin-bottom: 20px;
-        }
-
-        .cartIcon {
-            font-size: 2em;
-            transition: all 0.3s ease;
-            /* Add smooth transition effect */
-        }
-
-        .cartIcon:hover {
-            transform: scale(1.1);
-            /* Increase icon size on hover */
-            color: rgb(8, 230, 230);
-        }
-
 
         .navbar {
+            background-color: #4CAF50;
+            color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid red;
-            padding: 10px;
+            padding: 15px 20px;
         }
 
         .webName {
@@ -142,12 +96,15 @@
         }
 
         .navLogo {
-            width: 60px;
-            height: 60px;
+            width: 100px;
+            height: 100px;
+            margin-right: 10px;
+            padding: none;
         }
 
         .webName h1 {
             font-size: 24px;
+            margin: 0;
         }
 
         #searchForm {
@@ -158,7 +115,69 @@
         .basketIcon {
             font-size: 24px;
         }
+
+        #app {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            padding: 20px;
+        }
+
+        .lessonCard {
+            background-color: #ffffff;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            width: 300px;
+            margin: 20px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            transition: 0.3s;
+        }
+
+        .lessonCard:hover {
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .lessonCard h2 {
+            font-size: 1.8em;
+            font-weight: 800;
+            color: #4CAF50;
+            margin-bottom: 10px;
+        }
+
+        .lessonCard button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .lessonCard button:hover {
+            background-color: #45a049;
+        }
+
+        .lessonIcon {
+            font-size: 70px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        .cartIcon {
+            font-size: 2em;
+            transition: all 0.3s ease;
+        }
+
+        .cartIcon:hover {
+            transform: scale(1.1);
+            color: #4CAF50;
+        }
     </style>
+
 
 </body>
 
