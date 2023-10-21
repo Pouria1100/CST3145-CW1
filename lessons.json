@@ -1,0 +1,100 @@
+{
+    "lessonGroups": [
+        {
+            "id": 1111,
+            "subject": "Math",
+            "location": "London",
+            "price": 100,
+            "spaces": 5,
+            "icon": "fa-solid fa-calculator"
+        },
+        {
+            "id": 1112,
+            "subject": "Science",
+            "location": "New York",
+            "price": 120,
+            "spaces": 5,
+            "icon": "fa-solid fa-flask"
+        },
+        {
+            "id": 1113,
+            "subject": "History",
+            "location": "Paris",
+            "price": 90,
+            "spaces": 5,
+            "icon": "fa-solid fa-book"
+        },
+        {
+            "id": 1114,
+            "subject": "English",
+            "location": "Los Angeles",
+            "price": 110,
+            "spaces": 5,
+            "icon": "fa-solid fa-book-open"
+        },
+        {
+            "id": 1115,
+            "subject": "Physics",
+            "location": "Chicago",
+            "price": 130,
+            "spaces": 5,
+            "icon": "fa-solid fa-atom"
+        },
+        {
+            "id": 1116,
+            "subject": "Chemistry",
+            "location": "Berlin",
+            "price": 115,
+            "spaces": 5,
+            "icon": "fa-solid fa-flask"
+        },
+        {
+            "id": 1117,
+            "subject": "Geography",
+            "location": "Tokyo",
+            "price": 95,
+            "spaces": 5,
+            "icon": "fa-solid fa-globe"
+        },
+        {
+            "id": 1118,
+            "subject": "Computer Science",
+            "location": "San Francisco",
+            "price": 125,
+            "spaces": 5,
+            "icon": "fa-solid fa-laptop-code"
+        },
+        {
+            "id": 1119,
+            "subject": "Biology",
+            "location": "Sydney",
+            "price": 105,
+            "spaces": 5,
+            "icon": "fa-solid fa-microscope"
+        },
+        {
+            "id": 1120,
+            "subject": "Economics",
+            "location": "Toronto",
+            "price": 85,
+            "spaces": 5,
+            "icon": "fa-solid fa-chart-line"
+        },
+        {
+            "id": 1121,
+            "subject": "Physical Education",
+            "location": "Rio de Janeiro",
+            "price": 75,
+            "spaces": 5,
+            "icon": "fa-solid fa-dumbbell"
+        },
+        {
+            "id": 1122,
+            "subject": "Music",
+            "location": "Nashville",
+            "price": 110,
+            "spaces": 5,
+            "icon": "fa-solid fa-music"
+        }
+    ]
+}

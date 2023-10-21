@@ -6,53 +6,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
     <script src="https://kit.fontawesome.com/5796e58888.js" crossorigin="anonymous"></script>
-    <title>Document</title>
+    <title>After School Club</title>
 </head>
 
-<body>
-
+<body style="background-image: url('../images/bg2.jpg'); background-size: cover; background-repeat:no-repeat">
+    <!-- Navbar section with search field and basket icon -->
+    <div id="navbar" class="navbar">
+        <div class="webName">
+            <img src="../icons/logo2.png" alt="Logo" class="navLogo">
+            <h1>After School Club</h1>
+        </div>
+        <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Search...">
+            <button type="submit">Search</button>
+        </form>
+        <div class="basketIcon">
+            <i class="fas fa-shopping-basket"></i>
+        </div>
+    </div>
     <div id="app">
-        <div class="lessonCard">
-            <i v-bind:class="lesson.icon"></i>
+        <!-- Loop through the lessons and display them as cards -->
+        <div v-for="(lesson, index) in lessons" :key="index" class="lessonCard">
+            <i v-bind:class="lesson.icon" class="lessonIcon"></i>
             <p> Subject : {{lesson.subject}} </p>
             <p> Location : {{lesson.location}} </p>
             <p> Price : £{{lesson.price}} </p>
             <p> Available Spaces : {{lesson.spaces}} </p>
-            <button>
-                <span>
-                    <i class="fa-solid fa-cart-plus"></i>
-                </span>
+            <button @click="addToBasket(lesson)">
+                <i class="fa-solid fa-cart-plus cartIcon"></i>
                 Add To Basket
             </button>
         </div>
-
     </div>
-
-
-
 
     <script>
         let webStore = new Vue({
             el: "#app",
 
             data: {
-                lesson: {
-                    id: 1111,
-                    subject: "Math",
-                    location: "London",
-                    price: 100,
-                    spaces: 5,
-                    icon: "fa-solid fa-calculator",
-                }
+                lessons: [] // Array to store fetched lessons
+            },
 
+            created() {
+                this.fetchLessons(); // Fetch lessons when the Vue instance is created
+            },
+
+            methods: {
+                // Fetch lessons from lessons.json file
+                fetchLessons() {
+                    fetch('lessons.json') // Fetch data from lessons.json
+                        .then(response => response.json()) // Parse JSON response
+                        .then(data => {
+                            this.lessons = data.lessonGroups; // Set fetched data to lessons array
+                        })
+                        .catch(error => {
+                            console.error('Error fetching lessons: ', error); // Handle errors if any
+                        });
+                },
+
+                // Add lesson to the basket
+                addToBasket(lesson) {
+                    // Logic to add lesson to the basket
+                    console.log('Lesson added to basket: ', lesson);
+                }
             }
         })
     </script>
 
-
     <style>
+        #app {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
         .lessonCard {
-            border: 1px solid black;
+            border: 3px solid #012A4A;
             border-radius: 10px;
             padding: 10px;
             text-align: center;
@@ -61,25 +90,73 @@
             justify-content: center;
             align-items: center;
             width: 300px;
-            font-weight: 600;
+            font-size: 1.6em;
+            font-weight: 800;
+            margin: 10px;
+            color: #01497C;
         }
 
         .lessonCard button {
             display: flex;
             align-items: center;
             justify-content: space-evenly;
-            width: 10em;
+            width: 15em;
+            height: 4em;
             border: none;
             border-radius: 10px;
-            padding: 15px;
-            color: rgb(3, 3, 45);
-            background-color: rgb(179, 255, 255);
+            padding: 10px;
+            color: rgb(31, 31, 108);
+            background-color: #A9D6E5;
         }
 
-        .lessonCard i {
-            font-size: 48px;
-            color: #007bff;
+        .lessonIcon {
+            font-size: 70px;
+            color: #61A5C2;
             margin-bottom: 20px;
+        }
+
+        .cartIcon {
+            font-size: 2em;
+            transition: all 0.3s ease;
+            /* Add smooth transition effect */
+        }
+
+        .cartIcon:hover {
+            transform: scale(1.1);
+            /* Increase icon size on hover */
+            color: rgb(8, 230, 230);
+        }
+
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid red;
+            padding: 10px;
+        }
+
+        .webName {
+            display: flex;
+            align-items: center;
+        }
+
+        .navLogo {
+            width: 60px;
+            height: 60px;
+        }
+
+        .webName h1 {
+            font-size: 24px;
+        }
+
+        #searchForm {
+            display: flex;
+            gap: 10px;
+        }
+
+        .basketIcon {
+            font-size: 24px;
         }
     </style>
 
