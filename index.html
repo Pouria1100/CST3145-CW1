@@ -12,13 +12,15 @@
 <body style="background-image: url('../images/bg2.jpg'); background-size: cover; background-repeat:no-repeat">
     <!-- Navbar section with search field and basket icon -->
     <div id="navbar" class="navbar">
+        <img src="../icons/logo1.png" alt="Logo" class="navLogo">
         <div class="webName">
-            <img src="../icons/logo.png" alt="Logo" class="navLogo">
             <h1>After School Club</h1>
         </div>
         <form id="searchForm">
             <input type="text" id="searchInput" placeholder="Search...">
-            <button type="submit">Search</button>
+            <button type="submit">
+                <i class="fas fa-search"></i> <!-- Font Awesome magnifier icon -->
+            </button>
         </form>
         <div class="basketIcon">
             <i class="fas fa-shopping-basket"></i>
@@ -40,19 +42,21 @@
     </div>
 
     <script>
+        //Creates a new Vue instance named webStore
         let webStore = new Vue({
+            //Binds the Vue instance to the HTML element with the ID app
             el: "#app",
-
+            //Defines the data property lessons as an empty array to store fetched lessons
             data: {
                 lessons: [] // Array to store fetched lessons
             },
-
+            //Lifecycle hook that runs when the Vue instance is created. It calls the fetchLessons method to load lesson data
             created() {
                 this.fetchLessons(); // Fetch lessons when the Vue instance is created
             },
 
             methods: {
-                // Fetch lessons from lessons.json file
+                //Contains methods to fetch lessons from a JSON file and add lessons to the basket
                 fetchLessons() {
                     fetch('lessons.json') // Fetch data from lessons.json
                         .then(response => response.json()) // Parse JSON response
@@ -66,14 +70,29 @@
 
                 // Add lesson to the basket
                 addToBasket(lesson) {
-                    // Logic to add lesson to the basket
-                    console.log('Lesson added to basket: ', lesson);
+                    if (lesson.spaces > 0) {
+                        if (!lesson.cartQuantity) {
+                            lesson.cartQuantity = 0;
+                        }
+
+                        if (lesson.cartQuantity < 5) {
+                            lesson.cartQuantity++;
+                            lesson.spaces--;
+                        } else {
+                            lesson.isOutOfStock = true;
+                        }
+                    } else {
+                        lesson.isOutOfStock = true;
+                    }
                 }
             }
-        })
+        });
     </script>
 
+
     <style>
+        /*Style of Website*/
+
         body {
             background-color: #f4f4f4;
             font-family: Arial, sans-serif;
@@ -87,17 +106,23 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
+            padding: 5px 10px;
         }
 
         .webName {
             display: flex;
             align-items: center;
+            flex: 1;
+            /* Allow the webName section to expand and fill the available space */
+            justify-content: center;
+            /* Center the content horizontally */
+
         }
+
 
         .navLogo {
             width: 100px;
-            height: 100px;
+            height: 80px;
             margin-right: 10px;
             padding: none;
         }
@@ -114,6 +139,8 @@
 
         .basketIcon {
             font-size: 24px;
+            margin-left: 10px;
+            /* Add margin to the left of the basket icon for spacing */
         }
 
         #app {
