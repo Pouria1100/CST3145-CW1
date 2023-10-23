@@ -38,7 +38,6 @@
                     </div>
                 </div>
 
-
                 <form id="searchForm" @submit.prevent="searchLessons">
                     <input type="text" id="searchInput" placeholder="Search..." v-model="searchQuery"
                         @input="searchLessons">
@@ -53,6 +52,7 @@
                 </div>
             </div>
         </header>
+
         <main v-if="showProduct">
             <div class="lessonContainer">
                 <!-- Loop through the lessons and display them as cards -->
@@ -70,9 +70,50 @@
                 </div>
             </div>
         </main>
+        <!-----------------------------------------------Basket Page-------------------------------------------------------------------------------------->
+        <!-- Inside the Basket Page section -->
         <div v-else>
-            Welcome To Checkout Page
+            <div class="basketContainerWrapper">
+                <div class="basketContainer">
+                    <div class="checkoutMessage">
+                        <h2>Welcome to Checkout Page</h2>
+                        <h6 class="scrollDown">Scroll Down To Check Out</h6>
+                    </div>
+                    <div>
+                        <div class="orderDetails">
+                            <div class="verticalLine"></div> <!-- Vertical line -->
+                            <div class="customerForm">
+                                <input type="text" placeholder="Full Name" v-model="customerName"
+                                    @input="validateCustomerName">
+                                <input type="text" placeholder="Phone Number" v-model="customerPhoneNumber"
+                                    @input="validateCustomerPhoneNumber">
+
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="lessonList">
+                        <div v-for="(lesson, index) in cart" :key="index" class="basketItem">
+                            <i :class="lesson.icon" class="lessonIcon"></i>
+                            <div class="lessonDetails">
+                                <p>{{ lesson.subject }}</p>
+                                <p>Price: £{{ lesson.price }}</p>
+                            </div>
+                            <button class="removeButton" @click="removeFromCart(lesson)">
+                                <div class="tooltip"><i class="fas fa-trash-alt"></i>
+                                    <span class="tooltiptext">Remove </span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                    <button @click="submitOrder" :disabled="!isFormValid" class="customerFormButton">Submit
+                        Order</button>
+                </div>
+            </div>
         </div>
+
+
+        <!-----------------------------------------------Basket Page--------------------------------------------------------------------------------->
     </div>
     <script>
         let webStore = new Vue({
@@ -109,6 +150,19 @@
                 },
             },
             methods: {
+                removeFromCart: function (lesson) {
+                    const index = this.cart.indexOf(lesson);
+                    if (index !== -1) {
+                        // Remove the lesson from the cart
+                        this.cart.splice(index, 1);
+
+                        // Increase the available spaces for the removed lesson
+                        lesson.spaces++;
+
+                        // Decrease the cart counter
+                        this.cartCounter--;
+                    }
+                },
                 showCheckout: function () {
                     this.showProduct = !this.showProduct; // Hide the product details
                     this.showCheckoutPage = !this.showCheckoutPage; // Show the checkout page
@@ -172,13 +226,27 @@
     <style>
         /* Global Styles */
         body {
-            background-image: url('https://images.unsplash.com/photo-1540151812223-c30b3fab58e6?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
-            background-size: cover;
-            background-repeat: no-repeat;
+            position: relative;
+            /* Set the position to relative to allow positioning of the pseudo-element */
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://images.unsplash.com/photo-1540151812223-c30b3fab58e6?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-repeat: no-repeat;
+            opacity: 0.5;
+            z-index: -1;
+        }
+
 
         /* Navbar Styles */
         .navbar {
@@ -193,6 +261,8 @@
         .webName {
             display: flex;
             align-items: center;
+            flex-grow: 1;
+            /* Allow the webName div to grow and take available space */
         }
 
         .pageTitle {
@@ -203,16 +273,12 @@
             background-color: rgba(0, 0, 0, 0.5);
             padding: 10px 20px;
             border-radius: 10px;
-            margin-right: 500px;
-            display: inline-block;
-            width: 10em;
         }
 
         .selectContainer {
             display: flex;
             align-items: center;
-            background-color: #4CAF50;
-
+            margin-right: 20px;
         }
 
         .selectWrapper {
@@ -220,7 +286,7 @@
             /* Adjust the margin as needed for spacing between the dropdowns */
         }
 
-        /* Modify the existing .select styles if needed */
+
         .selectWrapper select {
             padding: 5px;
             font-size: 16px;
@@ -295,12 +361,12 @@
             width: 20%;
             /* Set the width to 20% for each card */
             margin: 20px;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
             transition: 0.3s;
         }
 
         .lessonCard:hover {
-            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.3);
         }
 
         .lessonCard h2 {
@@ -340,6 +406,132 @@
         .cartIcon:hover {
             transform: scale(1.1);
             color: #4CAF50;
+        }
+
+        /* Style for wrapper container */
+        .basketContainerWrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Semi-transparent black background */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 999;
+        }
+
+        /* Style for checkout container */
+        .basketContainer {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            width: 30%;
+            /* Adjust the width as needed */
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        /* Style for checkout message */
+        .checkoutMessage {
+            font-size: 36px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .scrollDown {
+            text-transform: none;
+            color: grey;
+        }
+
+        /* Style for basket item */
+        .basketItem {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 93%;
+            background-color: white;
+            border: 3px solid #4CAF50;
+            border-radius: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid #ccc;
+        }
+
+        .removeButton {
+            color: red;
+        }
+
+
+        /* Style for tooltip */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted black;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #72b175;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            /* Center the tooltip */
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+        /* Style for customer form input fields */
+        .customerForm input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Style for the submit button */
+        .customerFormButton {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+            /* Add margin to the top */
+            display: block;
+            /* Make the button a block element */
+            margin-left: auto;
+            /* Center the button horizontally */
+            margin-right: auto;
+            /* Center the button horizontally */
+        }
+
+        .customerFormButton:hover {
+            background-color: #45a049;
         }
     </style>
 
