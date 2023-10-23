@@ -9,70 +9,132 @@
     <title>After School Club</title>
 </head>
 
-<body
-    style="background-image: url('https://images.unsplash.com/photo-1540151812223-c30b3fab58e6?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'); background-size: cover; background-repeat:no-repeat">
-    <!-- Navbar section with search field and basket icon -->
-    <div id="navbar" class="navbar">
-        <img src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=2071&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-            alt="Logo" class="navLogo">
-        <div class="webName">
-            <h1>After School Club</h1>
-        </div>
-        <form id="searchForm">
-            <input type="text" id="searchInput" placeholder="Search...">
-            <button type="submit">
-                <i class="fas fa-search"></i> <!-- Font Awesome magnifier icon -->
-            </button>
-        </form>
-        <div class="basketIcon">
-            <i class="fas fa-shopping-basket"></i>
-        </div>
-    </div>
+<body>
     <div id="app">
-        <!-- Loop through the lessons and display them as cards -->
-        <div v-for="(lesson, index) in lessons" :key="index" class="lessonCard">
-            <i v-bind:class="lesson.icon" class="lessonIcon"></i>
-            <p> Subject : {{lesson.subject}} </p>
-            <p> Location : {{lesson.location}} </p>
-            <p> Price : £{{lesson.price}} </p>
-            <p> Available Spaces : {{lesson.spaces}} </p>
-            <button @click="addToBasket(lesson)">
-                <i class="fa-solid fa-cart-plus cartIcon"></i>
-                Add To Basket
-            </button>
+        <header>
+            <!-- Navbar section with search field and basket icon -->
+            <div id="navbar" class="navbar">
+                <img src="https://images.unsplash.com/photo-1546410531-bb4caa6b424d?auto=format&fit=crop&q=80&w=2071&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt="Logo" class="navLogo">
+                <div class="webName">
+                    <h1 class="pageTitle">After School Club</h1>
+                </div>
+                <div class="selectContainer">
+                    <div class="selectWrapper">
+                        <label for="sortAttribute">Sort By:</label>
+                        <select v-model="sortAttribute" @change="sortByAttribute(sortAttribute)">
+                            <option value="subject">Subject</option>
+                            <option value="location">Location</option>
+                            <option value="price">Price</option>
+                            <option value="spaces">Available Spaces</option>
+                        </select>
+                    </div>
+                    <div class="selectWrapper">
+                        <label for="sortOrder">Order:</label>
+                        <select v-model="sortOrder" @change="sortByAttribute(sortAttribute)">
+                            <option value="asc">Ascending</option>
+                            <option value="desc">Descending</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <form id="searchForm" @submit.prevent="searchLessons">
+                    <input type="text" id="searchInput" placeholder="Search..." v-model="searchQuery"
+                        @input="searchLessons">
+                    <button type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+
+                <div class="basketIcon" @click="showCheckout">
+                    <i class="fas fa-shopping-basket"></i>
+                    <span>{{cartLength}}</span>
+                </div>
+            </div>
+        </header>
+        <main v-if="showProduct">
+            <div class="lessonContainer">
+                <!-- Loop through the lessons and display them as cards -->
+                <div v-for="(lesson, index) in sortedLessons" :key="index" class="lessonCard">
+                    <i v-bind:class="lesson.icon" class="lessonIcon"></i>
+                    <h2>{{lesson.subject}}</h2>
+                    <p>Location: {{lesson.location}}</p>
+                    <p>Price: £{{lesson.price}}</p>
+                    <p>Available Spaces: {{lesson.spaces}}</p>
+                    <button :disabled="!canAddToBasket(lesson)" @click="addToBasket(lesson)">
+                        <i v-if="lesson.spaces != 0" class="fa-solid fa-cart-plus cartIcon"></i>
+                        <i v-else class="fa-solid fa-cart-shopping cartIcon"></i>
+                        {{ !canAddToBasket(lesson) ? 'Not Available' : 'Add To Basket' }}
+                    </button>
+                </div>
+            </div>
+        </main>
+        <div v-else>
+            Welcome To Checkout Page
         </div>
     </div>
-
     <script>
-        //Creates a new Vue instance named webStore
         let webStore = new Vue({
-            //Binds the Vue instance to the HTML element with the ID app
             el: "#app",
-            //Defines the data property lessons as an empty array to store fetched lessons
             data: {
-                lessons: [] // Array to store fetched lessons
+                showProduct: true,
+                showCheckoutPage: false, // Added new data property to control checkout page visibility
+                lessons: [], // Array to store fetched lessons
+                filteredLessons: [], // Separate array for search filtering
+                sortAttribute: "subject", // Default sorting attribute
+                sortOrder: "asc", // Default sorting order
+                cartCounter: 0,
+                searchQuery: '', // Store user's search query
+                cart: [], // Array to store lessons in cart
             },
-            //Lifecycle hook that runs when the Vue instance is created. It calls the fetchLessons method to load lesson data
             created() {
                 this.fetchLessons(); // Fetch lessons when the Vue instance is created
             },
+            computed: {
+                sortedLessons: function () {
+                    let sortedLessons = [...this.filteredLessons];
+                    let modifier = this.sortOrder === "desc" ? -1 : 1;
 
+                    sortedLessons.sort((a, b) => {
+                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
+                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
+                        return 0;
+                    });
+
+                    return sortedLessons;
+                },
+                cartLength: function () {
+                    return this.cart.length || "";
+                },
+            },
             methods: {
-                //Contains methods to fetch lessons from a JSON file and add lessons to the basket
+                showCheckout: function () {
+                    this.showProduct = !this.showProduct; // Hide the product details
+                    this.showCheckoutPage = !this.showCheckoutPage; // Show the checkout page
+                },
                 fetchLessons() {
-                    fetch('lessons.json') // Fetch data from lessons.json
-                        .then(response => response.json()) // Parse JSON response
+                    fetch('lessons.json')
+                        .then(response => response.json())
                         .then(data => {
-                            this.lessons = data.lessonGroups; // Set fetched data to lessons array
+                            this.lessons = data.lessonGroups;
+                            this.filteredLessons = data.lessonGroups;
                         })
                         .catch(error => {
-                            console.error('Error fetching lessons: ', error); // Handle errors if any
+                            console.error('Error fetching lessons: ', error);
                         });
                 },
-
-                // Add lesson to the basket
-                addToBasket(lesson) {
-                    if (lesson.spaces > 0) {
+                searchLessons: function () {
+                    const query = this.searchQuery.toLowerCase();
+                    this.filteredLessons = this.lessons.filter(lesson => {
+                        return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
+                    });
+                },
+                canAddToBasket: function (lesson) {
+                    return lesson.spaces > 0;
+                },
+                addToBasket: function (lesson) {
+                    if (this.canAddToBasket(lesson)) {
                         if (!lesson.cartQuantity) {
                             lesson.cartQuantity = 0;
                         }
@@ -80,28 +142,45 @@
                         if (lesson.cartQuantity < 5) {
                             lesson.cartQuantity++;
                             lesson.spaces--;
+                            this.cart.push(lesson);
+                            this.cartCounter++;
                         } else {
                             lesson.isOutOfStock = true;
                         }
                     } else {
                         lesson.isOutOfStock = true;
                     }
-                }
+                },
+                sortByAttribute: function () {
+                    // Sorting logic using this.sortAttribute and this.sortOrder
+                    let sortedLessons = [...this.filteredLessons];
+                    let modifier = this.sortOrder === "desc" ? -1 : 1;
+
+                    sortedLessons.sort((a, b) => {
+                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
+                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
+                        return 0;
+                    });
+
+                    this.filteredLessons = sortedLessons;
+                },
             }
         });
     </script>
 
 
     <style>
-        /*Style of Website*/
-
+        /* Global Styles */
         body {
-            background-color: #f4f4f4;
+            background-image: url('https://images.unsplash.com/photo-1540151812223-c30b3fab58e6?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+            background-size: cover;
+            background-repeat: no-repeat;
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
         }
 
+        /* Navbar Styles */
         .navbar {
             background-color: #4CAF50;
             color: white;
@@ -114,51 +193,107 @@
         .webName {
             display: flex;
             align-items: center;
-            flex: 1;
-            /* Allow the webName section to expand and fill the available space */
-            justify-content: center;
-            /* Center the content horizontally */
+        }
+
+        .pageTitle {
+            font-size: 24px;
+            margin: 0;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 2);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-right: 500px;
+            display: inline-block;
+            width: 10em;
+        }
+
+        .selectContainer {
+            display: flex;
+            align-items: center;
+            background-color: #4CAF50;
 
         }
 
+        .selectWrapper {
+            margin-right: 20px;
+            /* Adjust the margin as needed for spacing between the dropdowns */
+        }
+
+        /* Modify the existing .select styles if needed */
+        .selectWrapper select {
+            padding: 5px;
+            font-size: 16px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+        }
 
         .navLogo {
             width: 200px;
             height: 80px;
             margin-right: 10px;
-            padding: none;
-        }
-
-        .webName h1 {
-            font-size: 24px;
-            margin: 0;
         }
 
         #searchForm {
             display: flex;
+            align-items: baseline;
             gap: 10px;
+            padding-left: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            margin-right: 10px;
         }
+
+        #searchInput {
+            flex: 1;
+            font-size: 16px;
+            padding: 8px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #searchForm button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
 
         .basketIcon {
             font-size: 24px;
             margin-left: 10px;
-            /* Add margin to the left of the basket icon for spacing */
         }
 
-        #app {
+        .basketIcon span {
+            position: relative;
+            bottom: 25px;
+            right: 8px;
+            border-radius: 50px 50px 50px 0;
+            padding: 1px;
+            font-size: smaller;
+        }
+
+        .basketIcon :hover {
+            cursor: pointer;
+        }
+
+        .lessonContainer {
             display: flex;
             flex-wrap: wrap;
             justify-content: space-around;
-            padding: 20px;
         }
 
+        /* Card Styles */
         .lessonCard {
             background-color: #ffffff;
             border: 3px solid #4CAF50;
             border-radius: 10px;
             padding: 20px;
             text-align: center;
-            width: 300px;
+            width: 20%;
+            /* Set the width to 20% for each card */
             margin: 20px;
             box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
             transition: 0.3s;
@@ -187,7 +322,8 @@
         }
 
         .lessonCard button:hover {
-            background-color: #45a049;
+            background-color: #000000;
+            cursor: pointer;
         }
 
         .lessonIcon {
