@@ -46,7 +46,7 @@
                     </button>
                 </form>
 
-                <div class="basketIcon" @click="showCheckout">
+                <div class="basketIcon" @click="switchPage">
                     <i class="fas fa-shopping-basket"></i>
                     <span>{{cartLength}}</span>
                 </div>
@@ -81,7 +81,7 @@
                     </div>
                     <div>
                         <div class="orderDetails">
-                            <div class="verticalLine"></div> <!-- Vertical line -->
+                            <div class="verticalLine"></div>
                             <div class="customerForm">
                                 <input type="text" placeholder="Full Name" v-model="customerName"
                                     @input="validateCustomerName">
@@ -106,21 +106,38 @@
                             </button>
                         </div>
                     </div>
-                    <button @click="submitOrder" :disabled="!isFormValid" class="customerFormButton">Submit
+
+                    <div v-if="cart.length === 0">
+                        <p>Your cart is empty. Add items to proceed to checkout.</p>
+                        <button @click="switchPage">Back to Main Page</button>
+                    </div>
+
+                    <!-- Error message for invalid inputs -->
+                    <div v-if="invalidInputs" class="error-message">
+                        <p>Please enter valid name and phone number.</p>
+                    </div>
+
+                    <!-- Confirmation message after order submission -->
+                    <div v-if="orderSubmitted" class="confirmation-message">
+                        <p>Thank you for your order! Your order has been successfully submitted.</p>
+                        <button @click="switchPage">Back To Main Page</button>
+                    </div>
+                    <button @click="submitOrder" :disabled="isButtonDisabled" class="customerFormButton">Submit
                         Order</button>
                 </div>
             </div>
         </div>
 
-
         <!-----------------------------------------------Basket Page--------------------------------------------------------------------------------->
+
+
     </div>
     <script>
         let webStore = new Vue({
             el: "#app",
             data: {
                 showProduct: true,
-                showCheckoutPage: false, // Added new data property to control checkout page visibility
+                switchPagePage: false, // Data property to control checkout page visibility
                 lessons: [], // Array to store fetched lessons
                 filteredLessons: [], // Separate array for search filtering
                 sortAttribute: "subject", // Default sorting attribute
@@ -128,6 +145,11 @@
                 cartCounter: 0,
                 searchQuery: '', // Store user's search query
                 cart: [], // Array to store lessons in cart
+                customerName: "", // Initialize customerName data property
+                customerPhoneNumber: "", // Initialize customerPhoneNumber data property
+                orderSubmitted: false, // New data property to track if the order is submitted
+                invalidInputs: false, // New data property to track if there are invalid inputs
+                isButtonDisabled: false,
             },
             created() {
                 this.fetchLessons(); // Fetch lessons when the Vue instance is created
@@ -148,6 +170,7 @@
                 cartLength: function () {
                     return this.cart.length || "";
                 },
+
             },
             methods: {
                 removeFromCart: function (lesson) {
@@ -163,9 +186,9 @@
                         this.cartCounter--;
                     }
                 },
-                showCheckout: function () {
+                switchPage: function () {
                     this.showProduct = !this.showProduct; // Hide the product details
-                    this.showCheckoutPage = !this.showCheckoutPage; // Show the checkout page
+                    this.switchPagePage = !this.switchPagePage; // Show the checkout page
                 },
                 fetchLessons() {
                     fetch('lessons.json')
@@ -218,6 +241,50 @@
 
                     this.filteredLessons = sortedLessons;
                 },
+                validateCustomerName() {
+                    // Check if customerName is not empty and contains only letters and spaces
+                    const nameRegex = /^[a-zA-Z\s]+$/;
+                    return nameRegex.test(this.customerName.trim());
+                },
+                validateCustomerPhoneNumber() {
+                    // Check if customerPhoneNumber is not empty and contains only digits
+                    const phoneRegex = /^(07\d{9})$/;
+                    return phoneRegex.test(this.customerPhoneNumber.trim());
+                },
+                isFormValid() {
+                    console.log(this.invalidInputs != false);
+                    console.log(this.customerName.trim() !== '');
+                    console.log(this.customerPhoneNumber.trim() !== '');
+                    console.log(this.validateCustomerName(this.customerName.trim()));
+                    console.log(this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()));
+                    console.log(this.cart.length > 0);
+                    console.log(this.cart.length);
+                    // Check if both customerName and customerPhoneNumber are valid
+                    return this.invalidInputs != false && this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '' && this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim() && this.cart.length >= 1);
+                },
+                submitOrder() {
+                    if (this.isFormValid()) {
+                        // Form is valid, proceed with submitting the order
+
+                        // logic to send the order data to server or perform any other actions.
+                        // Set orderSubmitted to true to display the confirmation message
+                        this.orderSubmitted = true;
+
+                        // Reset invalidInputs to false after successful submission
+                        this.invalidInputs = false;
+                        this.isButtonDisabled = true;
+                        setTimeout(() => {
+                            this.switchPage();
+
+                        }, 4000)
+
+                    } else {
+                        // Form is invalid, show an error message or handle the error as needed
+                        console.log("Invalid form data. Please check your inputs.");
+                        this.invalidInputs = true;
+
+                    }
+                },
             }
         });
     </script>
@@ -245,6 +312,11 @@
             background-repeat: no-repeat;
             opacity: 0.5;
             z-index: -1;
+        }
+
+        .confirmation-message {
+            position: relative;
+            z-index: 100;
         }
 
 
