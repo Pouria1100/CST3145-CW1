@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.min.js"></script>
     <script src="https://kit.fontawesome.com/5796e58888.js" crossorigin="anonymous"></script>
     <title>After School Club</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
@@ -22,7 +23,7 @@
                 <div class="selectContainer">
                     <div class="selectWrapper">
                         <label for="sortAttribute">Sort By:</label>
-                        <select v-model="sortAttribute" @change="sortByAttribute(sortAttribute)">
+                        <select v-model="sortAttribute" v-on:change="sortByAttribute(sortAttribute)">
                             <option value="subject">Subject</option>
                             <option value="location">Location</option>
                             <option value="price">Price</option>
@@ -31,22 +32,22 @@
                     </div>
                     <div class="selectWrapper">
                         <label for="sortOrder">Order:</label>
-                        <select v-model="sortOrder" @change="sortByAttribute(sortAttribute)">
+                        <select v-model="sortOrder" v-on:change="sortByAttribute(sortAttribute)">
                             <option value="asc">Ascending</option>
                             <option value="desc">Descending</option>
                         </select>
                     </div>
                 </div>
 
-                <form id="searchForm" @submit.prevent="searchLessons">
+                <form id="searchForm" v-on:submit.prevent="searchLessons">
                     <input type="text" id="searchInput" placeholder="Search..." v-model="searchQuery"
-                        @input="searchLessons">
+                        v-on:input="searchLessons">
                     <button type="submit">
                         <i class="fas fa-search"></i>
                     </button>
                 </form>
 
-                <div class="basketIcon" @click="switchPage">
+                <div class="basketIcon" v-on:click="switchPage">
                     <i class="fas fa-shopping-basket"></i>
                     <span>{{cartLength}}</span>
                 </div>
@@ -62,7 +63,7 @@
                     <p>Location: {{lesson.location}}</p>
                     <p>Price: £{{lesson.price}}</p>
                     <p>Available Spaces: {{lesson.spaces}}</p>
-                    <button :disabled="!canAddToBasket(lesson)" @click="addToBasket(lesson)">
+                    <button :disabled="!canAddToBasket(lesson)" v-on:click="addToBasket(lesson)">
                         <i v-if="lesson.spaces != 0" class="fa-solid fa-cart-plus cartIcon"></i>
                         <i v-else class="fa-solid fa-cart-shopping cartIcon"></i>
                         {{ !canAddToBasket(lesson) ? 'Not Available' : 'Add To Basket' }}
@@ -75,6 +76,10 @@
         <div v-else>
             <div class="basketContainerWrapper">
                 <div class="basketContainer">
+                    <div class="back-to-shopping">
+                        <i class="fa-solid fa-caret-left" v-on:click="switchPage"></i>
+                        <p>Back To The Shopping</p>
+                    </div>
                     <div class="checkoutMessage">
                         <h2>Welcome to Checkout Page</h2>
                         <h6 class="scrollDown">Scroll Down To Check Out</h6>
@@ -83,10 +88,15 @@
                         <div class="orderDetails">
                             <div class="verticalLine"></div>
                             <div class="customerForm">
+                                <!-- Error message for invalid inputs -->
+                                <div v-if="invalidInputs" class="error-message">
+                                    <p>Please enter valid name and phone number.</p>
+                                </div>
                                 <input type="text" placeholder="Full Name" v-model="customerName"
-                                    @input="validateCustomerName">
+                                    v-on:input="validateCustomerName">
+
                                 <input type="text" placeholder="Phone Number" v-model="customerPhoneNumber"
-                                    @input="validateCustomerPhoneNumber">
+                                    v-on:input="validateCustomerPhoneNumber">
 
                             </div>
                         </div>
@@ -99,7 +109,7 @@
                                 <p>{{ lesson.subject }}</p>
                                 <p>Price: £{{ lesson.price }}</p>
                             </div>
-                            <button class="removeButton" @click="removeFromCart(lesson)">
+                            <button class="removeButton" v-on:click="removeFromCart(lesson)">
                                 <div class="tooltip"><i class="fas fa-trash-alt"></i>
                                     <span class="tooltiptext">Remove </span>
                                 </div>
@@ -109,505 +119,179 @@
 
                     <div v-if="cart.length === 0">
                         <p>Your cart is empty. Add items to proceed to checkout.</p>
-                        <button @click="switchPage">Back to Main Page</button>
+
                     </div>
 
-                    <!-- Error message for invalid inputs -->
-                    <div v-if="invalidInputs" class="error-message">
-                        <p>Please enter valid name and phone number.</p>
+                    <div v-if="orderSubmitted">
+                        <!-- Confirmation message after order submission -->
+                        <div class="confirmation-message">
+                            <p>Thank you for your order! Your order has been successfully submitted.</p>
+                            <button v-on:click="switchPage">Back To Main Page</button>
+                        </div>
                     </div>
 
-                    <!-- Confirmation message after order submission -->
-                    <div v-if="orderSubmitted" class="confirmation-message">
-                        <p>Thank you for your order! Your order has been successfully submitted.</p>
-                        <button @click="switchPage">Back To Main Page</button>
+                    <div>
+
+
+                        <!-- Form to submit the order -->
+                        <button v-on:click="submitOrder" class="customerFormButton">Submit
+                            Order</button>
                     </div>
-                    <button @click="submitOrder" :disabled="isButtonDisabled" class="customerFormButton">Submit
-                        Order</button>
+
                 </div>
             </div>
         </div>
-
         <!-----------------------------------------------Basket Page--------------------------------------------------------------------------------->
+        <script>
+            let webStore = new Vue({
+                el: "#app",
+                data: {
+                    showProduct: true,
+                    lessons: [], // Array to store fetched lessons
+                    filteredLessons: [], // Separate array for search filtering
+                    sortAttribute: "subject", // Default sorting attribute
+                    sortOrder: "asc", // Default sorting order
+                    cartCounter: 0,
+                    searchQuery: '', // Store user's search query
+                    cart: [], // Array to store lessons in cart
+                    customerName: "", // Initialize customerName data property
+                    customerPhoneNumber: "", // Initialize customerPhoneNumber data property
+                    orderSubmitted: false, // New data property to track if the order is submitted
+                    invalidInputs: false, // New data property to track if there are invalid inputs
 
-
-    </div>
-    <script>
-        let webStore = new Vue({
-            el: "#app",
-            data: {
-                showProduct: true,
-                switchPagePage: false, // Data property to control checkout page visibility
-                lessons: [], // Array to store fetched lessons
-                filteredLessons: [], // Separate array for search filtering
-                sortAttribute: "subject", // Default sorting attribute
-                sortOrder: "asc", // Default sorting order
-                cartCounter: 0,
-                searchQuery: '', // Store user's search query
-                cart: [], // Array to store lessons in cart
-                customerName: "", // Initialize customerName data property
-                customerPhoneNumber: "", // Initialize customerPhoneNumber data property
-                orderSubmitted: false, // New data property to track if the order is submitted
-                invalidInputs: false, // New data property to track if there are invalid inputs
-                isButtonDisabled: false,
-            },
-            created() {
-                this.fetchLessons(); // Fetch lessons when the Vue instance is created
-            },
-            computed: {
-                sortedLessons: function () {
-                    let sortedLessons = [...this.filteredLessons];
-                    let modifier = this.sortOrder === "desc" ? -1 : 1;
-
-                    sortedLessons.sort((a, b) => {
-                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
-                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
-                        return 0;
-                    });
-
-                    return sortedLessons;
                 },
-                cartLength: function () {
-                    return this.cart.length || "";
+                created() {
+                    this.fetchLessons(); // Fetch lessons when the Vue instance is created
                 },
+                computed: {
+                    sortedLessons: function () {
+                        let sortedLessons = [...this.filteredLessons];
+                        let modifier = this.sortOrder === "desc" ? -1 : 1;
 
-            },
-            methods: {
-                removeFromCart: function (lesson) {
-                    const index = this.cart.indexOf(lesson);
-                    if (index !== -1) {
-                        // Remove the lesson from the cart
-                        this.cart.splice(index, 1);
-
-                        // Increase the available spaces for the removed lesson
-                        lesson.spaces++;
-
-                        // Decrease the cart counter
-                        this.cartCounter--;
-                    }
-                },
-                switchPage: function () {
-                    this.showProduct = !this.showProduct; // Hide the product details
-                    this.switchPagePage = !this.switchPagePage; // Show the checkout page
-                },
-                fetchLessons() {
-                    fetch('lessons.json')
-                        .then(response => response.json())
-                        .then(data => {
-                            this.lessons = data.lessonGroups;
-                            this.filteredLessons = data.lessonGroups;
-                        })
-                        .catch(error => {
-                            console.error('Error fetching lessons: ', error);
+                        sortedLessons.sort((a, b) => {
+                            if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
+                            if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
+                            return 0;
                         });
-                },
-                searchLessons: function () {
-                    const query = this.searchQuery.toLowerCase();
-                    this.filteredLessons = this.lessons.filter(lesson => {
-                        return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
-                    });
-                },
-                canAddToBasket: function (lesson) {
-                    return lesson.spaces > 0;
-                },
-                addToBasket: function (lesson) {
-                    if (this.canAddToBasket(lesson)) {
-                        if (!lesson.cartQuantity) {
-                            lesson.cartQuantity = 0;
-                        }
 
-                        if (lesson.cartQuantity < 5) {
-                            lesson.cartQuantity++;
-                            lesson.spaces--;
-                            this.cart.push(lesson);
-                            this.cartCounter++;
+                        return sortedLessons;
+                    },
+                    cartLength: function () {
+                        return this.cart.length || "";
+                    },
+
+                },
+                methods: {
+                    removeFromCart: function (lesson) {
+                        const index = this.cart.indexOf(lesson);
+                        if (index !== -1) {
+                            // Remove the lesson from the cart
+                            this.cart.splice(index, 1);
+
+                            // Increase the available spaces for the removed lesson
+                            lesson.spaces++;
+
+                            // Decrease the cart counter
+                            this.cartCounter--;
+                        }
+                    },
+                    switchPage() {
+
+                        // Only switch the page if the order has not been submitted
+                        this.showProduct = !this.showProduct; // Hide the product details
+                        this.switchPagePage = !this.switchPagePage; // Show the checkout page
+
+                    },
+                    fetchLessons() {
+                        fetch('lessons.json')
+                            .then(response => response.json())
+                            .then(data => {
+                                this.lessons = data.lessonGroups;
+                                this.filteredLessons = data.lessonGroups;
+                            })
+                            .catch(error => {
+                                console.error('Error fetching lessons: ', error);
+                            });
+                    },
+                    searchLessons: function () {
+                        const query = this.searchQuery.toLowerCase();
+                        this.filteredLessons = this.lessons.filter(lesson => {
+                            return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
+                        });
+                    },
+                    canAddToBasket: function (lesson) {
+                        return lesson.spaces > 0;
+                    },
+                    addToBasket: function (lesson) {
+                        if (this.canAddToBasket(lesson)) {
+                            if (!lesson.cartQuantity) {
+                                lesson.cartQuantity = 0;
+                            }
+
+                            if (lesson.cartQuantity < 5) {
+                                lesson.cartQuantity++;
+                                lesson.spaces--;
+                                this.cart.push(lesson);
+                                this.cartCounter++;
+                            } else {
+                                lesson.isOutOfStock = true;
+                            }
                         } else {
                             lesson.isOutOfStock = true;
                         }
-                    } else {
-                        lesson.isOutOfStock = true;
-                    }
-                },
-                sortByAttribute: function () {
-                    // Sorting logic using this.sortAttribute and this.sortOrder
-                    let sortedLessons = [...this.filteredLessons];
-                    let modifier = this.sortOrder === "desc" ? -1 : 1;
+                    },
+                    sortByAttribute: function () {
+                        // Sorting logic using this.sortAttribute and this.sortOrder
+                        let sortedLessons = [...this.filteredLessons];
+                        let modifier = this.sortOrder === "desc" ? -1 : 1;
 
-                    sortedLessons.sort((a, b) => {
-                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
-                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
-                        return 0;
-                    });
+                        sortedLessons.sort((a, b) => {
+                            if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
+                            if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
+                            return 0;
+                        });
 
-                    this.filteredLessons = sortedLessons;
-                },
-                validateCustomerName() {
-                    // Check if customerName is not empty and contains only letters and spaces
-                    const nameRegex = /^[a-zA-Z\s]+$/;
-                    return nameRegex.test(this.customerName.trim());
-                },
-                validateCustomerPhoneNumber() {
-                    // Check if customerPhoneNumber is not empty and contains only digits
-                    const phoneRegex = /^(07\d{9})$/;
-                    return phoneRegex.test(this.customerPhoneNumber.trim());
-                },
-                isFormValid() {
-                    console.log(this.invalidInputs != false);
-                    console.log(this.customerName.trim() !== '');
-                    console.log(this.customerPhoneNumber.trim() !== '');
-                    console.log(this.validateCustomerName(this.customerName.trim()));
-                    console.log(this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()));
-                    console.log(this.cart.length > 0);
-                    console.log(this.cart.length);
-                    // Check if both customerName and customerPhoneNumber are valid
-                    return this.invalidInputs != false && this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '' && this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim() && this.cart.length >= 1);
-                },
-                submitOrder() {
-                    if (this.isFormValid()) {
-                        // Form is valid, proceed with submitting the order
+                        this.filteredLessons = sortedLessons;
+                    },
+                    validateCustomerName() {
+                        // Check if customerName is not empty and contains only letters and spaces
+                        const nameRegex = /^[a-zA-Z\s]+$/;
+                        return nameRegex.test(this.customerName.trim());
+                    },
+                    validateCustomerPhoneNumber() {
+                        // Check if customerPhoneNumber is not empty and contains only digits
+                        const phoneRegex = /^(07\d{9})$/;
+                        return phoneRegex.test(this.customerPhoneNumber.trim());
+                    },
+                    isFormValid() {
+                        // Check if both customerName and customerPhoneNumber are valid
+                        return ((this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '') && (this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()) && this.cart.length >= 1));
+                    },
+                    submitOrder() {
+                        if (this.isFormValid()) {
+                            // Form is valid, proceed with submitting the order
 
-                        // logic to send the order data to server or perform any other actions.
-                        // Set orderSubmitted to true to display the confirmation message
-                        this.orderSubmitted = true;
-
-                        // Reset invalidInputs to false after successful submission
-                        this.invalidInputs = false;
-                        this.isButtonDisabled = true;
-                        setTimeout(() => {
-                            this.switchPage();
-
-                        }, 4000)
-
-                    } else {
-                        // Form is invalid, show an error message or handle the error as needed
-                        console.log("Invalid form data. Please check your inputs.");
-                        this.invalidInputs = true;
-
-                    }
-                },
-            }
-        });
-    </script>
+                            // logic to send the order data to server or perform any other actions.
+                            // Set orderSubmitted to true to display the confirmation message
+                            this.orderSubmitted = true;
+                            this.invalidInputs = false;
 
 
-    <style>
-        /* Global Styles */
-        body {
-            position: relative;
-            /* Set the position to relative to allow positioning of the pseudo-element */
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
 
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url('https://images.unsplash.com/photo-1540151812223-c30b3fab58e6?auto=format&fit=crop&q=80&w=2070&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
-            background-size: cover;
-            background-repeat: no-repeat;
-            opacity: 0.5;
-            z-index: -1;
-        }
-
-        .confirmation-message {
-            position: relative;
-            z-index: 100;
-        }
+                            // Reload the page after a short delay (for user to see the confirmation message)
+                            setTimeout(() => {
+                                // Clear the cart
+                                document.location.reload();
 
 
-        /* Navbar Styles */
-        .navbar {
-            background-color: #4CAF50;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 5px 10px;
-        }
-
-        .webName {
-            display: flex;
-            align-items: center;
-            flex-grow: 1;
-            /* Allow the webName div to grow and take available space */
-        }
-
-        .pageTitle {
-            font-size: 24px;
-            margin: 0;
-            color: white;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 2);
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            border-radius: 10px;
-        }
-
-        .selectContainer {
-            display: flex;
-            align-items: center;
-            margin-right: 20px;
-        }
-
-        .selectWrapper {
-            margin-right: 20px;
-            /* Adjust the margin as needed for spacing between the dropdowns */
-        }
-
-
-        .selectWrapper select {
-            padding: 5px;
-            font-size: 16px;
-            border: 1px solid #4CAF50;
-            border-radius: 5px;
-        }
-
-        .navLogo {
-            width: 200px;
-            height: 80px;
-            margin-right: 10px;
-        }
-
-        #searchForm {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-            padding-left: 5px;
-            padding: 10px 20px;
-            font-size: 16px;
-            border: 1px solid #4CAF50;
-            border-radius: 5px;
-            margin-right: 10px;
-        }
-
-        #searchInput {
-            flex: 1;
-            font-size: 16px;
-            padding: 8px;
-            border: none;
-            border-radius: 5px;
-        }
-
-        #searchForm button {
-            background-color: transparent;
-            border: none;
-            cursor: pointer;
-        }
-
-
-        .basketIcon {
-            font-size: 24px;
-            margin-left: 10px;
-        }
-
-        .basketIcon span {
-            position: relative;
-            bottom: 25px;
-            right: 8px;
-            border-radius: 50px 50px 50px 0;
-            padding: 1px;
-            font-size: smaller;
-        }
-
-        .basketIcon :hover {
-            cursor: pointer;
-        }
-
-        .lessonContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-        }
-
-        /* Card Styles */
-        .lessonCard {
-            background-color: #ffffff;
-            border: 3px solid #4CAF50;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            width: 20%;
-            /* Set the width to 20% for each card */
-            margin: 20px;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.3);
-            transition: 0.3s;
-        }
-
-        .lessonCard:hover {
-            box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.3);
-        }
-
-        .lessonCard h2 {
-            font-size: 1.8em;
-            font-weight: 800;
-            color: #4CAF50;
-            margin-bottom: 10px;
-        }
-
-        .lessonCard button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .lessonCard button:hover {
-            background-color: #000000;
-            cursor: pointer;
-        }
-
-        .lessonIcon {
-            font-size: 70px;
-            color: #4CAF50;
-            margin-bottom: 20px;
-        }
-
-        .cartIcon {
-            font-size: 2em;
-            transition: all 0.3s ease;
-        }
-
-        .cartIcon:hover {
-            transform: scale(1.1);
-            color: #4CAF50;
-        }
-
-        /* Style for wrapper container */
-        .basketContainerWrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0.5);
-            /* Semi-transparent black background */
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            z-index: 999;
-        }
-
-        /* Style for checkout container */
-        .basketContainer {
-            background-color: white;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            width: 30%;
-            /* Adjust the width as needed */
-            max-height: 80%;
-            overflow-y: auto;
-        }
-
-        /* Style for checkout message */
-        .checkoutMessage {
-            font-size: 36px;
-            font-weight: bold;
-            color: #4CAF50;
-            text-align: center;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .scrollDown {
-            text-transform: none;
-            color: grey;
-        }
-
-        /* Style for basket item */
-        .basketItem {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 93%;
-            background-color: white;
-            border: 3px solid #4CAF50;
-            border-radius: 10px;
-            margin: 10px 0;
-            padding: 10px;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            border-bottom: 1px solid #ccc;
-        }
-
-        .removeButton {
-            color: red;
-        }
-
-
-        /* Style for tooltip */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-            border-bottom: 1px dotted black;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 120px;
-            background-color: #72b175;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 5px 0;
-            /* Position the tooltip */
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -60px;
-            /* Center the tooltip */
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-        }
-
-        /* Style for customer form input fields */
-        .customerForm input {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 15px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-
-        /* Style for the submit button */
-        .customerFormButton {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 20px;
-            /* Add margin to the top */
-            display: block;
-            /* Make the button a block element */
-            margin-left: auto;
-            /* Center the button horizontally */
-            margin-right: auto;
-            /* Center the button horizontally */
-        }
-
-        .customerFormButton:hover {
-            background-color: #45a049;
-        }
-    </style>
-
-
+                            }, 2000);
+                        } else {
+                            this.invalidInputs = true;
+                        }
+                    },
+                }
+            });
+        </script>
 </body>
 
 </html>
