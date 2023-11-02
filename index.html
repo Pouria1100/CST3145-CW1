@@ -42,12 +42,9 @@
                 <form id="searchForm" v-on:submit.prevent="searchLessons">
                     <input type="text" id="searchInput" placeholder="Search..." v-model="searchQuery"
                         v-on:input="searchLessons">
-                    <button type="submit">
-                        <i class="fas fa-search"></i>
-                    </button>
                 </form>
 
-                <div class="basketIcon" v-on:click="switchPage">
+                <div class="basketIcon" v-on:click="changePage">
                     <i class="fas fa-shopping-basket"></i>
                     <span>{{cartLength}}</span>
                 </div>
@@ -201,6 +198,13 @@
                     // Only switch the page if the order has not been submitted
                     this.showProduct = !this.showProduct; // Hide the product details
                     this.switchPagePage = !this.switchPagePage; // Show the checkout page
+                },
+
+                //To disable the basket when is empty
+                changePage() {
+                    if (this.cart.length > 0) {
+                        this.switchPage();
+                    }
 
                 },
                 fetchLessons() {
