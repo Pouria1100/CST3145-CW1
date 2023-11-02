@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.8/dist/vue.js"></script>
     <script src="https://kit.fontawesome.com/5796e58888.js" crossorigin="anonymous"></script>
     <title>After School Club</title>
     <link rel="stylesheet" href="style.css">
@@ -141,157 +141,158 @@
                 </div>
             </div>
         </div>
-        <!-----------------------------------------------Basket Page--------------------------------------------------------------------------------->
-        <script>
-            let webStore = new Vue({
-                el: "#app",
-                data: {
-                    showProduct: true,
-                    lessons: [], // Array to store fetched lessons
-                    filteredLessons: [], // Separate array for search filtering
-                    sortAttribute: "subject", // Default sorting attribute
-                    sortOrder: "asc", // Default sorting order
-                    cartCounter: 0,
-                    searchQuery: '', // Store user's search query
-                    cart: [], // Array to store lessons in cart
-                    customerName: "", // Initialize customerName data property
-                    customerPhoneNumber: "", // Initialize customerPhoneNumber data property
-                    orderSubmitted: false, // New data property to track if the order is submitted
-                    invalidInputs: false, // New data property to track if there are invalid inputs
+    </div>
+    <!-----------------------------------------------Basket Page--------------------------------------------------------------------------------->
+    <script>
+        let webStore = new Vue({
+            el: "#app",
+            data: {
+                showProduct: true,
+                lessons: [], // Array to store fetched lessons
+                filteredLessons: [], // Separate array for search filtering
+                sortAttribute: "subject", // Default sorting attribute
+                sortOrder: "asc", // Default sorting order
+                cartCounter: 0,
+                searchQuery: '', // Store user's search query
+                cart: [], // Array to store lessons in cart
+                customerName: "", // Initialize customerName data property
+                customerPhoneNumber: "", // Initialize customerPhoneNumber data property
+                orderSubmitted: false, // New data property to track if the order is submitted
+                invalidInputs: false, // New data property to track if there are invalid inputs
+
+            },
+            created() {
+                this.fetchLessons(); // Fetch lessons when the Vue instance is created
+            },
+            computed: {
+                sortedLessons: function () {
+                    let sortedLessons = [...this.filteredLessons];
+                    let modifier = this.sortOrder === "desc" ? -1 : 1;
+
+                    sortedLessons.sort((a, b) => {
+                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
+                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
+                        return 0;
+                    });
+
+                    return sortedLessons;
+                },
+                cartLength: function () {
+                    return this.cart.length || "";
+                },
+
+            },
+            methods: {
+                removeFromCart: function (lesson) {
+                    const index = this.cart.indexOf(lesson);
+                    if (index !== -1) {
+                        // Remove the lesson from the cart
+                        this.cart.splice(index, 1);
+
+                        // Increase the available spaces for the removed lesson
+                        lesson.spaces++;
+
+                        // Decrease the cart counter
+                        this.cartCounter--;
+                    }
+                },
+                switchPage() {
+
+                    // Only switch the page if the order has not been submitted
+                    this.showProduct = !this.showProduct; // Hide the product details
+                    this.switchPagePage = !this.switchPagePage; // Show the checkout page
 
                 },
-                created() {
-                    this.fetchLessons(); // Fetch lessons when the Vue instance is created
-                },
-                computed: {
-                    sortedLessons: function () {
-                        let sortedLessons = [...this.filteredLessons];
-                        let modifier = this.sortOrder === "desc" ? -1 : 1;
-
-                        sortedLessons.sort((a, b) => {
-                            if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
-                            if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
-                            return 0;
+                fetchLessons() {
+                    fetch('lessons.json')
+                        .then(response => response.json())
+                        .then(data => {
+                            this.lessons = data.lessonGroups;
+                            this.filteredLessons = data.lessonGroups;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching lessons: ', error);
                         });
-
-                        return sortedLessons;
-                    },
-                    cartLength: function () {
-                        return this.cart.length || "";
-                    },
-
                 },
-                methods: {
-                    removeFromCart: function (lesson) {
-                        const index = this.cart.indexOf(lesson);
-                        if (index !== -1) {
-                            // Remove the lesson from the cart
-                            this.cart.splice(index, 1);
-
-                            // Increase the available spaces for the removed lesson
-                            lesson.spaces++;
-
-                            // Decrease the cart counter
-                            this.cartCounter--;
+                searchLessons: function () {
+                    const query = this.searchQuery.toLowerCase();
+                    this.filteredLessons = this.lessons.filter(lesson => {
+                        return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
+                    });
+                },
+                canAddToBasket: function (lesson) {
+                    return lesson.spaces > 0;
+                },
+                addToBasket: function (lesson) {
+                    if (this.canAddToBasket(lesson)) {
+                        if (!lesson.cartQuantity) {
+                            lesson.cartQuantity = 0;
                         }
-                    },
-                    switchPage() {
 
-                        // Only switch the page if the order has not been submitted
-                        this.showProduct = !this.showProduct; // Hide the product details
-                        this.switchPagePage = !this.switchPagePage; // Show the checkout page
-
-                    },
-                    fetchLessons() {
-                        fetch('lessons.json')
-                            .then(response => response.json())
-                            .then(data => {
-                                this.lessons = data.lessonGroups;
-                                this.filteredLessons = data.lessonGroups;
-                            })
-                            .catch(error => {
-                                console.error('Error fetching lessons: ', error);
-                            });
-                    },
-                    searchLessons: function () {
-                        const query = this.searchQuery.toLowerCase();
-                        this.filteredLessons = this.lessons.filter(lesson => {
-                            return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
-                        });
-                    },
-                    canAddToBasket: function (lesson) {
-                        return lesson.spaces > 0;
-                    },
-                    addToBasket: function (lesson) {
-                        if (this.canAddToBasket(lesson)) {
-                            if (!lesson.cartQuantity) {
-                                lesson.cartQuantity = 0;
-                            }
-
-                            if (lesson.cartQuantity < 5) {
-                                lesson.cartQuantity++;
-                                lesson.spaces--;
-                                this.cart.push(lesson);
-                                this.cartCounter++;
-                            } else {
-                                lesson.isOutOfStock = true;
-                            }
+                        if (lesson.cartQuantity < 5) {
+                            lesson.cartQuantity++;
+                            lesson.spaces--;
+                            this.cart.push(lesson);
+                            this.cartCounter++;
                         } else {
                             lesson.isOutOfStock = true;
                         }
-                    },
-                    sortByAttribute: function () {
-                        // Sorting logic using this.sortAttribute and this.sortOrder
-                        let sortedLessons = [...this.filteredLessons];
-                        let modifier = this.sortOrder === "desc" ? -1 : 1;
+                    } else {
+                        lesson.isOutOfStock = true;
+                    }
+                },
+                sortByAttribute: function () {
+                    // Sorting logic using this.sortAttribute and this.sortOrder
+                    let sortedLessons = [...this.filteredLessons];
+                    let modifier = this.sortOrder === "desc" ? -1 : 1;
 
-                        sortedLessons.sort((a, b) => {
-                            if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
-                            if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
-                            return 0;
-                        });
+                    sortedLessons.sort((a, b) => {
+                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
+                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
+                        return 0;
+                    });
 
-                        this.filteredLessons = sortedLessons;
-                    },
-                    validateCustomerName() {
-                        // Check if customerName is not empty and contains only letters and spaces
-                        const nameRegex = /^[a-zA-Z\s]+$/;
-                        return nameRegex.test(this.customerName.trim());
-                    },
-                    validateCustomerPhoneNumber() {
-                        // Check if customerPhoneNumber is not empty and contains only digits
-                        const phoneRegex = /^(07\d{9})$/;
-                        return phoneRegex.test(this.customerPhoneNumber.trim());
-                    },
-                    isFormValid() {
-                        // Check if both customerName and customerPhoneNumber are valid
-                        return ((this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '') && (this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()) && this.cart.length >= 1));
-                    },
-                    submitOrder() {
-                        if (this.isFormValid()) {
-                            // Form is valid, proceed with submitting the order
+                    this.filteredLessons = sortedLessons;
+                },
+                validateCustomerName() {
+                    // Check if customerName is not empty and contains only letters and spaces
+                    const nameRegex = /^[a-zA-Z\s]+$/;
+                    return nameRegex.test(this.customerName.trim());
+                },
+                validateCustomerPhoneNumber() {
+                    // Check if customerPhoneNumber is not empty and contains only digits
+                    const phoneRegex = /^(07\d{9})$/;
+                    return phoneRegex.test(this.customerPhoneNumber.trim());
+                },
+                isFormValid() {
+                    // Check if both customerName and customerPhoneNumber are valid
+                    return ((this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '') && (this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()) && this.cart.length >= 1));
+                },
+                submitOrder() {
+                    if (this.isFormValid()) {
+                        // Form is valid, proceed with submitting the order
 
-                            // logic to send the order data to server or perform any other actions.
-                            // Set orderSubmitted to true to display the confirmation message
-                            this.orderSubmitted = true;
-                            this.invalidInputs = false;
-
-
-
-                            // Reload the page after a short delay (for user to see the confirmation message)
-                            setTimeout(() => {
-                                // Clear the cart
-                                document.location.reload();
+                        // logic to send the order data to server or perform any other actions.
+                        // Set orderSubmitted to true to display the confirmation message
+                        this.orderSubmitted = true;
+                        this.invalidInputs = false;
 
 
-                            }, 2000);
-                        } else {
-                            this.invalidInputs = true;
-                        }
-                    },
-                }
-            });
-        </script>
+
+                        // Reload the page after a short delay (for user to see the confirmation message)
+                        setTimeout(() => {
+                            // Clear the cart
+                            document.location.reload();
+
+
+                        }, 2000);
+                    } else {
+                        this.invalidInputs = true;
+                    }
+                },
+            }
+        });
+    </script>
 </body>
 
 </html>
