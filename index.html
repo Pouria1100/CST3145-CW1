@@ -78,52 +78,53 @@
                         <p>Back To The Shopping</p>
                     </div>
                     <div class="checkoutMessage">
-                        <h2>Welcome to Checkout Page</h2>
-                        <h6 class="scrollDown">Scroll Down To Check Out</h6>
+                        <h5>Welcome to Checkout Page</h5>
+                        <hr>
+                        <h6 class="scrollDown">Enter your details and Submit your order</h6>
                     </div>
                     <div>
                         <div class="orderDetails">
                             <div class="verticalLine"></div>
                             <div class="customerForm">
                                 <!-- Error message for invalid inputs -->
-                                <div v-if="invalidInputs" class="error-message">
+                                <div id="error-message" class="error-message" v-if="invalidInputs">
                                     <p>Please enter valid name and phone number.</p>
                                 </div>
-                                <input type="text" placeholder="Full Name" v-model="customerName"
-                                    v-on:input="validateCustomerName">
+                                <input id="fullNameInput" class="text-input" type="text" placeholder="Full Name"
+                                    v-model="customerName" v-on:input="validateCustomerName">
 
-                                <input type="text" placeholder="Phone Number" v-model="customerPhoneNumber"
-                                    v-on:input="validateCustomerPhoneNumber">
-
+                                <input id="phoneNumberInput" class="text-input" type="text" placeholder="Phone Number"
+                                    v-model="customerPhoneNumber" v-on:input="validateCustomerPhoneNumber">
                             </div>
                         </div>
 
+
                     </div>
-                    <div class="lessonList">
-                        <div v-for="(lesson, index) in cart" :key="index" class="basketItem">
-                            <i :class="lesson.icon" class="lessonIcon"></i>
-                            <div class="lessonDetails">
-                                <p>{{ lesson.subject }}</p>
-                                <p>Price: £{{ lesson.price }}</p>
-                            </div>
-                            <button class="removeButton" v-on:click="removeFromCart(lesson)">
-                                <div class="tooltip"><i class="fas fa-trash-alt"></i>
-                                    <span class="tooltiptext">Remove </span>
+                    <div class="lessonListContainer">
+                        <div class="lessonList">
+                            <div v-for="(lesson, index) in cart" :key="index" class="basketItem">
+                                <i :class="lesson.icon" class="lessonIcon"></i>
+                                <div class="lessonDetails">
+                                    <p>{{ lesson.subject }}</p>
+                                    <p>Price: £{{ lesson.price }}</p>
                                 </div>
-                            </button>
+                                <button class="removeButton" v-on:click="removeFromCart(lesson)">
+                                    <div class="tooltip"><i class="fas fa-trash-alt"></i>
+                                        <span class="tooltiptext">Remove </span>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
-                    <div v-if="cart.length === 0">
+                    <div class="empty-cart-message" v-if="cart.length === 0">
                         <p>Your cart is empty. Add items to proceed to checkout.</p>
-
                     </div>
 
                     <div v-if="orderSubmitted">
                         <!-- Confirmation message after order submission -->
                         <div class="confirmation-message">
                             <p>Thank you for your order! Your order has been successfully submitted.</p>
-                            <button v-on:click="switchPage">Back To Main Page</button>
                         </div>
                     </div>
 
@@ -281,19 +282,17 @@
                         this.orderSubmitted = true;
                         this.invalidInputs = false;
 
-
-
-                        // Reload the page after a short delay (for user to see the confirmation message)
+                        // Reload the page after a short delay (for the user to see the confirmation message)
                         setTimeout(() => {
                             // Clear the cart
                             document.location.reload();
-
-
                         }, 2000);
                     } else {
+                        // Form is not valid, show the error message
                         this.invalidInputs = true;
                     }
                 },
+
             }
         });
     </script>
