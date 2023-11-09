@@ -181,6 +181,7 @@
 
             },
             methods: {
+                // Function to remove a lesson from the shopping cart
                 removeFromCart: function (lesson) {
                     const index = this.cart.indexOf(lesson);
                     if (index !== -1) {
@@ -194,6 +195,7 @@
                         this.cartCounter--;
                     }
                 },
+                // Function to switch between product view and checkout page
                 switchPage() {
 
                     // Only switch the page if the order has not been submitted
@@ -201,13 +203,14 @@
                     this.switchPagePage = !this.switchPagePage; // Show the checkout page
                 },
 
-                //To disable the basket when is empty
+                // Function to handle basket icon click and switch pages
                 changePage() {
                     if (this.cart.length > 0) {
                         this.switchPage();
                     }
 
                 },
+                // Function to fetch lessons from lessons.json file
                 fetchLessons() {
                     fetch('lessons.json')
                         .then(response => response.json())
@@ -219,15 +222,18 @@
                             console.error('Error fetching lessons: ', error);
                         });
                 },
+                // Function to perform lessons search based on user input
                 searchLessons: function () {
                     const query = this.searchQuery.toLowerCase();
                     this.filteredLessons = this.lessons.filter(lesson => {
                         return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
                     });
                 },
+                // Function to check if a lesson can be added to the cart
                 canAddToBasket: function (lesson) {
                     return lesson.spaces > 0;
                 },
+                // Function to add a lesson to the cart
                 addToBasket: function (lesson) {
                     if (this.canAddToBasket(lesson)) {
                         if (!lesson.cartQuantity) {
@@ -246,6 +252,7 @@
                         lesson.isOutOfStock = true;
                     }
                 },
+                // Function to sort lessons based on selected attribute and order
                 sortByAttribute: function () {
                     // Sorting logic using this.sortAttribute and this.sortOrder
                     let sortedLessons = [...this.filteredLessons];
@@ -259,26 +266,27 @@
 
                     this.filteredLessons = sortedLessons;
                 },
+                // Function to validate customer's name input
                 validateCustomerName() {
                     // Check if customerName is not empty and contains only letters and spaces
                     const nameRegex = /^[a-zA-Z\s]+$/;
                     return nameRegex.test(this.customerName.trim());
                 },
+                // Function to validate customer's phone number input
                 validateCustomerPhoneNumber() {
                     // Check if customerPhoneNumber is not empty and contains only digits
                     const phoneRegex = /^(07\d{9})$/;
                     return phoneRegex.test(this.customerPhoneNumber.trim());
                 },
+                // Function to check if the form is valid for order submission
                 isFormValid() {
                     // Check if both customerName and customerPhoneNumber are valid
                     return ((this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '') && (this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()) && this.cart.length >= 1));
                 },
+                // Function to submit the order and display confirmation message
                 submitOrder() {
                     if (this.isFormValid()) {
-                        // Form is valid, proceed with submitting the order
 
-                        // logic to send the order data to server or perform any other actions.
-                        // Set orderSubmitted to true to display the confirmation message
                         this.orderSubmitted = true;
                         this.invalidInputs = false;
 
