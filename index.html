@@ -20,28 +20,10 @@
                 <div class="webName">
                     <h1 class="pageTitle">After School Club</h1>
                 </div>
-                <div class="selectContainer">
-                    <div class="selectWrapper">
-                        <label for="sortAttribute">Sort By:</label>
-                        <select v-model="sortAttribute" v-on:change="sortByAttribute(sortAttribute)">
-                            <option value="subject">Subject</option>
-                            <option value="location">Location</option>
-                            <option value="price">Price</option>
-                            <option value="spaces">Available Spaces</option>
-                        </select>
-                    </div>
-                    <div class="selectWrapper">
-                        <label for="sortOrder">Order:</label>
-                        <select v-model="sortOrder" v-on:change="sortByAttribute(sortAttribute)">
-                            <option value="asc">Ascending</option>
-                            <option value="desc">Descending</option>
-                        </select>
-                    </div>
-                </div>
+                
 
-                <form id="searchForm" v-on:submit.prevent="searchLessons">
-                    <input type="text" id="searchInput" placeholder="Search..." v-model="searchQuery"
-                        v-on:input="searchLessons">
+                <form id="searchForm">
+                    <input type="text" id="searchInput" placeholder="Search..." >
                 </form>
 
                 <div class="basketIcon" v-on:click="changePage">
@@ -147,11 +129,7 @@
             data: {
                 showProduct: true,
                 lessons: [], // Array to store fetched lessons
-                filteredLessons: [], // Separate array for search filtering
-                sortAttribute: "subject", // Default sorting attribute
-                sortOrder: "asc", // Default sorting order
                 cartCounter: 0,
-                searchQuery: '', // Store user's search query
                 cart: [], // Array to store lessons in cart
                 customerName: "", // Initialize customerName data property
                 customerPhoneNumber: "", // Initialize customerPhoneNumber data property
@@ -170,6 +148,50 @@
 
             },
             methods: {
+                extractOrderIds(orders) {
+                    return orders.map(order => order._id);
+                },
+
+                async postOrder() {
+                    const order = {
+                        full_name: this.customerName,
+                        phone_no: this.customerPhoneNumber,
+                        lessons: this.extractOrderIds(this.cart),
+                        
+                    };
+
+                const header = {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(order),
+                    };
+
+                    try {
+
+
+                        const response = await fetch("https://afterschool-env.eba-ri2ffiqw.eu-west-2.elasticbeanstalk.com/orders", header);
+
+                        if (!response.ok) {
+                            // Handle error if the response status is not OK (e.g., 4xx or 5xx)
+                            throw new Error(`Failed to submit order: ${response.statusText}`);
+                        }
+
+                        const response_json = await response.json();
+
+                        const response_status = response_json.status;
+
+                        if (response_status === 201) {
+                            this.orderSubmitted = true;
+                            this.invalidInputs = false;
+                        }
+
+                    } catch (error) {
+                        console.error('Error submitting order:', error.message);
+                    }
+    },
+
                 // Function to remove a lesson from the shopping cart
                 removeFromCart: function (lesson) {
                     const index = this.cart.indexOf(lesson);
@@ -253,18 +275,20 @@
                     // Check if both customerName and customerPhoneNumber are valid
                     return ((this.customerName.trim() !== '' && this.customerPhoneNumber.trim() !== '') && (this.validateCustomerName(this.customerName.trim()) && this.validateCustomerPhoneNumber(this.customerPhoneNumber.trim()) && this.cart.length >= 1));
                 },
+                resetCheckout(){
+                    this.cart = [];
+                        this.customerName = "";
+                        this.customerPhoneNumber = "";
+                },
                 // Function to submit the order and display confirmation message
                 submitOrder() {
                     if (this.isFormValid()) {
 
-                        this.orderSubmitted = true;
-                        this.invalidInputs = false;
+                        this.postOrder();
+                        this.resetCheckout();
+                    
 
-                        // Reload the page after a short delay (for the user to see the confirmation message)
-                        setTimeout(() => {
-                            // Clear the cart
-                            document.location.reload();
-                        }, 2000);
+                       
                     } else {
                         // Form is not valid, show the error message
                         this.invalidInputs = true;
