@@ -54,7 +54,7 @@
         <main v-if="showProduct">
             <div class="lessonContainer">
                 <!-- Loop through the lessons and display them as cards -->
-                <div v-for="(lesson, index) in sortedLessons" :key="index" class="lessonCard">
+                <div v-for="(lesson, index) in lessons" :key="index" class="lessonCard">
                     <i v-bind:class="lesson.icon" class="lessonIcon"></i>
                     <h2>{{lesson.subject}}</h2>
                     <p>Location: {{lesson.location}}</p>
@@ -163,18 +163,7 @@
                 this.fetchLessons(); // Fetch lessons when the Vue instance is created
             },
             computed: {
-                sortedLessons: function () {
-                    let sortedLessons = [...this.filteredLessons];
-                    let modifier = this.sortOrder === "desc" ? -1 : 1;
-
-                    sortedLessons.sort((a, b) => {
-                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
-                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
-                        return 0;
-                    });
-
-                    return sortedLessons;
-                },
+            
                 cartLength: function () {
                     return this.cart.length || "";
                 },
@@ -212,23 +201,17 @@
                 },
                 // Function to fetch lessons from lessons.json file
                 fetchLessons() {
-                    fetch('lessons.json')
+                    fetch('https://afterschool-env.eba-ri2ffiqw.eu-west-2.elasticbeanstalk.com/lessons')
                         .then(response => response.json())
                         .then(data => {
-                            this.lessons = data.lessonGroups;
-                            this.filteredLessons = data.lessonGroups;
+                            this.lessons = data
+            
                         })
                         .catch(error => {
                             console.error('Error fetching lessons: ', error);
                         });
                 },
-                // Function to perform lessons search based on user input
-                searchLessons: function () {
-                    const query = this.searchQuery.toLowerCase();
-                    this.filteredLessons = this.lessons.filter(lesson => {
-                        return query === '' || lesson.subject.toLowerCase().includes(query) || lesson.location.toLowerCase().includes(query);
-                    });
-                },
+        
                 // Function to check if a lesson can be added to the cart
                 canAddToBasket: function (lesson) {
                     return lesson.spaces > 0;
@@ -252,20 +235,7 @@
                         lesson.isOutOfStock = true;
                     }
                 },
-                // Function to sort lessons based on selected attribute and order
-                sortByAttribute: function () {
-                    // Sorting logic using this.sortAttribute and this.sortOrder
-                    let sortedLessons = [...this.filteredLessons];
-                    let modifier = this.sortOrder === "desc" ? -1 : 1;
-
-                    sortedLessons.sort((a, b) => {
-                        if (a[this.sortAttribute] < b[this.sortAttribute]) return -1 * modifier;
-                        if (a[this.sortAttribute] > b[this.sortAttribute]) return 1 * modifier;
-                        return 0;
-                    });
-
-                    this.filteredLessons = sortedLessons;
-                },
+            
                 // Function to validate customer's name input
                 validateCustomerName() {
                     // Check if customerName is not empty and contains only letters and spaces
