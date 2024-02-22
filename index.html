@@ -148,15 +148,58 @@
 
             },
             methods: {
+                async updateLessonSpace(lessonID, new_space) {
+                    try {
+                        // Prepare the updated space object
+                        let updated_space = { spaces: new_space };
+
+                        // Construct the API endpoint URL
+                        const lesson_api = `https://afterschool-env.eba-ri2ffiqw.eu-west-2.elasticbeanstalk.com/lessons/${lessonID}`;
+
+                        // Prepare the request headers and body
+                        const header = {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(updated_space)
+                        };
+
+                        // Send the update request to the server
+                        const response = await fetch(lesson_api, header);
+
+                        // Check if the response is successful (status code 2xx)
+                        if (response.ok) {
+                            console.log('Lesson space updated successfully');
+                        } else {
+                            // Handle error if the response status is not OK (e.g., 4xx or 5xx)
+                            throw new Error(`Failed to update lesson space: ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        // Handle any errors that occur during the update process
+                        console.error('Error updating lesson space:', error.message);
+                    }
+                },
                 extractOrderIds(orders) {
                     return orders.map(order => order._id);
                 },
+
+                //Trying to decrement the available spaces
+                // decrementSpace(){
+                //     let lessons_ids =  this.extractOrderIds(this.cart);
+
+                //     lessons_ids.forEach((lesson_id) =>{
+                //         this.updateLessonSpace(lesson_id,2);
+                //     })
+                    
+                   
+                // },
 
                 async postOrder() {
                     const order = {
                         full_name: this.customerName,
                         phone_no: this.customerPhoneNumber,
-                        lessons: this.extractOrderIds(this.cart),
+                        lessons:  this.extractOrderIds(this.cart),
                         
                     };
 
